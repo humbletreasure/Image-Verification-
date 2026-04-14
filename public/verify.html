@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Verification Checker</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #020617;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #0f172a;
+      padding: 20px;
+      border-radius: 12px;
+      width: 340px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px;
+      margin-top: 8px;
+      width: 100%;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .load-btn {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .approve-btn {
+      background: #22c55e;
+      color: black;
+    }
+
+    .reject-btn {
+      background: #ef4444;
+      color: white;
+    }
+
+    img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h2>Verify Screenshot</h2>
+
+    <input type="text" id="imageUrl" placeholder="Paste image link here..." />
+    <button class="load-btn" onclick="loadImage()">Load Image</button>
+
+    <img id="preview" />
+
+    <div class="meta" id="meta"></div>
+
+    <button class="approve-btn" onclick="approve()">Approve</button>
+    <button class="reject-btn" onclick="reject()">Reject</button>
+
+    <p id="status"></p>
+  </div>
+
+  <script>
+    let currentUrl = "";
+
+    function isValidCloudinary(url) {
+      return url.includes("res.cloudinary.com");
+    }
+
+    function loadImage() {
+      const url = document.getElementById("imageUrl").value.trim();
+      const preview = document.getElementById("preview");
+      const status = document.getElementById("status");
+      const meta = document.getElementById("meta");
+
+      if (!url) {
+        alert("Paste a link first");
+        return;
+      }
+
+      if (!isValidCloudinary(url)) {
+        alert("Invalid image link");
+        return;
+      }
+
+      currentUrl = url;
+
+      preview.src = url;
+      preview.style.display = "block";
+
+      status.innerText = "Image loaded. Ready for verification.";
+      meta.innerText = "Loaded at: " + new Date().toLocaleString();
+    }
+
+    function approve() {
+      if (!currentUrl) {
+        alert("Load an image first");
+        return;
+      }
+
+      document.getElementById("status").innerText = "✅ Approved";
+      saveResult("approved");
+    }
+
+    function reject() {
+      if (!currentUrl) {
+        alert("Load an image first");
+        return;
+      }
+
+      document.getElementById("status").innerText = "❌ Rejected";
+      saveResult("rejected");
+    }
+
+    function saveResult(status) {
+      const record = {
+        url: currentUrl,
+        status: status,
+        time: new Date().toISOString()
+      };
+
+      let logs = JSON.parse(localStorage.getItem("verifications") || "[]");
+      logs.push(record);
+      localStorage.setItem("verifications", JSON.stringify(logs));
+    }
+  </script>
+
+</body>
+</html>
