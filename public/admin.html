@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>View Proof</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      width: 360px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      margin-bottom: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #3b82f6;
+      color: white;
+      font-weight: bold;
+    }
+
+    img, iframe {
+      width: 100%;
+      margin-top: 15px;
+      border-radius: 8px;
+      display: none;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h2>View Uploaded Proof</h2>
+
+    <input type="text" id="linkInput" placeholder="Paste image or PDF link..." />
+    <button onclick="viewFile()">View File</button>
+
+    <div id="status"></div>
+
+    <img id="imageView" />
+    <iframe id="pdfView"></iframe>
+  </div>
+
+  <script>
+    function viewFile() {
+      const url = document.getElementById("linkInput").value.trim();
+      const img = document.getElementById("imageView");
+      const pdf = document.getElementById("pdfView");
+      const status = document.getElementById("status");
+
+      // Reset views
+      img.style.display = "none";
+      pdf.style.display = "none";
+
+      if (!url) {
+        alert("Please paste a link");
+        return;
+      }
+
+      status.innerText = "Loading file...";
+
+      // PDF detection
+      if (url.includes(".pdf")) {
+        pdf.src = url;
+        pdf.style.display = "block";
+        status.innerText = "PDF loaded successfully";
+      } else {
+        img.src = url;
+        img.style.display = "block";
+        status.innerText = "Image loaded successfully";
+      }
+    }
+  </script>
+
+</body>
+</html>
