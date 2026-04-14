@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload Screenshot</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      width: 320px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    h2 {
+      margin-bottom: 15px;
+    }
+
+    input[type="file"] {
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px;
+      margin-top: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .upload-btn {
+      background: #22c55e;
+      color: #000;
+    }
+
+    .copy-btn {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    img {
+      margin-top: 10px;
+      max-width: 100%;
+      border-radius: 5px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h2>Upload Screenshot</h2>
+
+    <input type="file" id="fileInput" accept="image/png, image/jpeg" />
+
+    <button class="upload-btn" onclick="uploadImage()">Upload</button>
+
+    <p id="status"></p>
+
+    <img id="preview" />
+
+    <input type="text" id="imageLink" readonly placeholder="Your image link will appear here" />
+
+    <button class="copy-btn" onclick="copyLink()">Copy Link</button>
+  </div>
+
+  <script>
+    async function uploadImage() {
+      const fileInput = document.getElementById("fileInput");
+      const file = fileInput.files[0];
+      const status = document.getElementById("status");
+      const preview = document.getElementById("preview");
+
+      if (!file) {
+        alert("Please select an image first");
+        return;
+      }
+
+      // File size limit (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File too large (max 5MB)");
+        return;
+      }
+
+      status.innerText = "Uploading...";
+      preview.style.display = "none";
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "temp_uploads");
+      formData.append("tags", "temp_verification");
+
+      try {
+        const response = await fetch("https://api.cloudinary.com/v1_1/dha0gt3hv/image/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.secure_url) {
+          status.innerText = "Upload successful!";
+          document.getElementById("imageLink").value = data.secure_url;
+
+          preview.src = data.secure_url;
+          preview.style.display = "block";
+        } else {
+          status.innerText = "Upload failed. Try again.";
+        }
+
+      } catch (error) {
+        status.innerText = "Error uploading image.";
+      }
+    }
+
+    function copyLink() {
+      const input = document.getElementById("imageLink");
+
+      if (!input.value) {
+        alert("No link to copy");
+        return;
+      }
+
+      input.select();
+      input.setSelectionRange(0, 99999);
+
+      document.execCommand("copy");
+
+      alert("Link copied!");
+    }
+  </script>
+
+</body>
+      </html>
