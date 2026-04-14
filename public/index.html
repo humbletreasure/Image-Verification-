@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Upload Proof</title>
+  <title>View Proof</title>
 
   <style>
     body {
@@ -17,17 +17,20 @@
       margin: 0;
     }
 
-    .container {
+    .box {
       background: #1e293b;
       padding: 20px;
-      border-radius: 12px;
-      width: 340px;
+      border-radius: 10px;
+      width: 350px;
       text-align: center;
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
     }
 
-    input[type="file"] {
-      margin: 10px 0;
+    input {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      margin-bottom: 10px;
     }
 
     button {
@@ -35,130 +38,67 @@
       padding: 10px;
       border: none;
       border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-
-    .upload-btn {
-      background: #22c55e;
-      color: black;
-    }
-
-    .copy-btn {
       background: #3b82f6;
       color: white;
+      font-weight: bold;
+      cursor: pointer;
     }
 
-    .bar-container {
+    img, iframe {
       width: 100%;
-      background: #334155;
-      border-radius: 6px;
-      margin-top: 10px;
-      overflow: hidden;
-    }
-
-    .bar {
-      height: 10px;
-      width: 0%;
-      background: #22c55e;
-      transition: width 0.2s;
+      margin-top: 15px;
+      border-radius: 8px;
+      display: none;
     }
 
     #status {
       margin-top: 10px;
       font-size: 14px;
-      color: #cbd5e1;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 8px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: none;
+      color: #94a3b8;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="container">
-    <h2>Upload Proof</h2>
+  <div class="box">
+    <h2>View Uploaded Proof</h2>
 
-    <input type="file" id="fileInput" accept="image/*,application/pdf" />
+    <input type="text" id="linkInput" placeholder="Paste link here..." />
+    <button onclick="viewFile()">View</button>
 
-    <button class="upload-btn" onclick="uploadFile()">Upload</button>
+    <div id="status"></div>
 
-    <div class="bar-container">
-      <div class="bar" id="bar"></div>
-    </div>
-
-    <p id="status"></p>
-
-    <input type="text" id="linkBox" readonly placeholder="Your link will appear here" />
-
-    <button class="copy-btn" onclick="copyLink()">Copy Link</button>
+    <img id="imgView" />
+    <iframe id="pdfView"></iframe>
   </div>
 
   <script>
-    async function uploadFile() {
-      const file = document.getElementById("fileInput").files[0];
+    function viewFile() {
+      const url = document.getElementById("linkInput").value.trim();
+      const img = document.getElementById("imgView");
+      const pdf = document.getElementById("pdfView");
       const status = document.getElementById("status");
-      const bar = document.getElementById("bar");
 
-      if (!file) {
-        alert("Select a file first");
+      img.style.display = "none";
+      pdf.style.display = "none";
+
+      if (!url) {
+        alert("Paste a link");
         return;
       }
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", "temp_uploads");
-      formData.append("folder", "temp_verification");
-      formData.append("tags", "temp_verification");
+      status.innerText = "Loading...";
 
-      const xhr = new XMLHttpRequest();
-
-      xhr.open("POST", "https://api.cloudinary.com/v1_1/dha0gt3hv/upload");
-
-      xhr.upload.onprogress = function (e) {
-        if (e.lengthComputable) {
-          let percent = Math.round((e.loaded / e.total) * 100);
-          bar.style.width = percent + "%";
-          status.innerText = "Uploading... " + percent + "%";
-        }
-      };
-
-      xhr.onload = function () {
-        const response = JSON.parse(xhr.responseText);
-
-        if (response.secure_url) {
-          status.innerText = "Upload complete ✅";
-          document.getElementById("linkBox").value = response.secure_url;
-        } else {
-          status.innerText = "Upload failed ❌";
-        }
-      };
-
-      xhr.onerror = function () {
-        status.innerText = "Error uploading file";
-      };
-
-      xhr.send(formData);
-    }
-
-    function copyLink() {
-      const box = document.getElementById("linkBox");
-
-      if (!box.value) {
-        alert("No link yet");
-        return;
+      if (url.includes(".pdf")) {
+        pdf.src = url;
+        pdf.style.display = "block";
+        status.innerText = "PDF loaded";
+      } else {
+        img.src = url;
+        img.style.display = "block";
+        status.innerText = "Image loaded";
       }
-
-      box.select();
-      document.execCommand("copy");
-      alert("Link copied!");
     }
   </script>
 
