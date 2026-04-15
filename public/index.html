@@ -3,58 +3,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>View Proof</title>
+  <title>Upload File</title>
 
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       background: #0f172a;
       color: white;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
     }
 
     .box {
       background: #1e293b;
       padding: 20px;
       border-radius: 10px;
-      width: 350px;
+      width: 320px;
       text-align: center;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      margin-bottom: 10px;
     }
 
     button {
       width: 100%;
       padding: 10px;
+      margin-top: 10px;
       border: none;
       border-radius: 6px;
-      background: #3b82f6;
-      color: white;
-      font-weight: bold;
+      background: #22c55e;
       cursor: pointer;
+      font-weight: bold;
     }
 
-    img, iframe {
+    input {
       width: 100%;
-      margin-top: 15px;
-      border-radius: 8px;
-      display: none;
+      padding: 8px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: none;
+    }
+
+    .bar-bg {
+      width: 100%;
+      background: #334155;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+
+    .bar {
+      height: 10px;
+      width: 0%;
+      background: #22c55e;
     }
 
     #status {
       margin-top: 10px;
-      font-size: 14px;
-      color: #94a3b8;
     }
   </style>
 </head>
@@ -62,43 +65,54 @@
 <body>
 
   <div class="box">
-    <h2>View Uploaded Proof</h2>
+    <h2>Upload Proof</h2>
 
-    <input type="text" id="linkInput" placeholder="Paste link here..." />
-    <button onclick="viewFile()">View</button>
+    <input type="file" id="file" />
 
-    <div id="status"></div>
+    <button onclick="upload()">Upload</button>
 
-    <img id="imgView" />
-    <iframe id="pdfView"></iframe>
+    <div class="bar-bg">
+      <div class="bar" id="bar"></div>
+    </div>
+
+    <p id="status"></p>
+
+    <input id="link" readonly placeholder="Your link will appear here"/>
+
   </div>
 
   <script>
-    function viewFile() {
-      const url = document.getElementById("linkInput").value.trim();
-      const img = document.getElementById("imgView");
-      const pdf = document.getElementById("pdfView");
+    function upload() {
+      const file = document.getElementById("file").files[0];
+      const bar = document.getElementById("bar");
       const status = document.getElementById("status");
 
-      img.style.display = "none";
-      pdf.style.display = "none";
-
-      if (!url) {
-        alert("Paste a link");
+      if (!file) {
+        alert("Select file");
         return;
       }
 
-      status.innerText = "Loading...";
+      const data = new FormData();
+      data.append("file", file);
+      data.append("upload_preset", "temp_uploads");
 
-      if (url.includes(".pdf")) {
-        pdf.src = url;
-        pdf.style.display = "block";
-        status.innerText = "PDF loaded";
-      } else {
-        img.src = url;
-        img.style.display = "block";
-        status.innerText = "Image loaded";
-      }
+      const xhr = new XMLHttpRequest();
+
+      xhr.open("POST", "https://api.cloudinary.com/v1_1/dha0gt3hv/upload");
+
+      xhr.upload.onprogress = function(e) {
+        let percent = Math.round((e.loaded / e.total) * 100);
+        bar.style.width = percent + "%";
+        status.innerText = "Uploading " + percent + "%";
+      };
+
+      xhr.onload = function() {
+        const res = JSON.parse(xhr.responseText);
+        document.getElementById("link").value = res.secure_url;
+        status.innerText = "Done ✅";
+      };
+
+      xhr.send(data);
     }
   </script>
 
