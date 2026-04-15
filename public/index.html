@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Upload File</title>
+  <title>Upload Proof</title>
 
   <style>
     body {
@@ -14,6 +14,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      margin: 0;
     }
 
     .box {
@@ -22,6 +23,14 @@
       border-radius: 10px;
       width: 320px;
       text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: none;
     }
 
     button {
@@ -35,29 +44,24 @@
       font-weight: bold;
     }
 
-    input {
-      width: 100%;
-      padding: 8px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: none;
-    }
-
     .bar-bg {
       width: 100%;
       background: #334155;
       margin-top: 10px;
       border-radius: 5px;
+      overflow: hidden;
     }
 
     .bar {
       height: 10px;
       width: 0%;
       background: #22c55e;
+      transition: width 0.2s;
     }
 
     #status {
       margin-top: 10px;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -67,7 +71,7 @@
   <div class="box">
     <h2>Upload Proof</h2>
 
-    <input type="file" id="file" />
+    <input type="file" id="file" accept="image/*,application/pdf" />
 
     <button onclick="upload()">Upload</button>
 
@@ -78,7 +82,6 @@
     <p id="status"></p>
 
     <input id="link" readonly placeholder="Your link will appear here"/>
-
   </div>
 
   <script>
@@ -88,7 +91,7 @@
       const status = document.getElementById("status");
 
       if (!file) {
-        alert("Select file");
+        alert("Select a file first");
         return;
       }
 
@@ -98,18 +101,31 @@
 
       const xhr = new XMLHttpRequest();
 
-      xhr.open("POST", "https://api.cloudinary.com/v1_1/dha0gt3hv/upload");
+      // ✅ FIXED ENDPOINT (IMPORTANT)
+      xhr.open("POST", "https://api.cloudinary.com/v1_1/dha0gt3hv/auto/upload");
 
       xhr.upload.onprogress = function(e) {
-        let percent = Math.round((e.loaded / e.total) * 100);
-        bar.style.width = percent + "%";
-        status.innerText = "Uploading " + percent + "%";
+        if (e.lengthComputable) {
+          let percent = Math.round((e.loaded / e.total) * 100);
+          bar.style.width = percent + "%";
+          status.innerText = "Uploading " + percent + "%";
+        }
       };
 
       xhr.onload = function() {
         const res = JSON.parse(xhr.responseText);
-        document.getElementById("link").value = res.secure_url;
-        status.innerText = "Done ✅";
+
+        if (res.secure_url) {
+          document.getElementById("link").value = res.secure_url;
+          status.innerText = "Upload complete ✅";
+        } else {
+          console.log(res);
+          status.innerText = "Upload failed ❌";
+        }
+      };
+
+      xhr.onerror = function() {
+        status.innerText = "Network error ❌";
       };
 
       xhr.send(data);
